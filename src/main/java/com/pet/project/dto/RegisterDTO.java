@@ -15,6 +15,11 @@ public class RegisterDTO {
     private String title;
     private User.UserRole role;
 
+    // 药房工作人员特有信息
+    private String department;         // 所属药房部门
+    private String pharmacistLicense;  // 药剂师执照号
+    private String pharmacyLocation;   // 工作地点
+
 }
 
 

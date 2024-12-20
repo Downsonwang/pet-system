@@ -7,7 +7,7 @@ import FrontLogin from '../views/FrontLogin.vue'
 import WorkerLogin from '../views/WorkerLogin.vue'
 import Home from '../views/Home.vue'
 import DoctorDashboard from '../views/DoctorDashboard.vue'
-import PharmacyDashboard from '../views/PharmacyDashboard.vue'
+import PharmacyDashboard from '../views/pharmacist/PharmacistDashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,6 +59,15 @@ const router = createRouter({
       path: '/worker-login',
       name: 'workerLogin',
       component: WorkerLogin
+    },
+    {
+      path: '/worker/dashboard',  // 添加药房工作台路由
+      name: 'workerDashboard',
+      component: PharmacyDashboard,
+      meta: {
+        requiresAuth: true,
+        role: 'PHARMACIST'  // 指定药房工作人员角色
+      }
     }
   ]
 })

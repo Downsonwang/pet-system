@@ -48,7 +48,17 @@ public class AuthController {
                 registerDTO.setSpecialization(specialization);
                 registerDTO.setIntroduction(introduction);
                 registerDTO.setTitle(title);
+            }else  if (User.UserRole.PHARMACIST.equals(role)) {
+                // 可以添加药房工作人员特有的验证或处理
+                // 比如验证工号格式等
+                if (!username.startsWith("PH")) {  // 假设药房工作人员工号以PH开头
+                    return Result.error("药房工作人员工号格式不正确，应以PH开头");
+                }
+
             }
+
+
+            // 如果角色为药师,则设置医药管理员信心
 
             authService.register(registerDTO);
             return Result.success(null);

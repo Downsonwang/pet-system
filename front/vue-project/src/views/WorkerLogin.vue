@@ -16,66 +16,181 @@
       </div>
     </div>
 
-    <!-- 右侧登录区域 -->
+    <!-- 右侧登录/注册区域 -->
     <div class="login-content">
       <div class="back-button" @click="$router.push('/')">← 返回</div>
       <div class="form-container">
         <h2>{{ isLogin ? '药房工作站' : '工作人员注册' }}</h2>
-        <p class="subtitle">{{ isLogin ? '请输入工号和密码' : '请填写注册信息' }}</p>
+        <p class="subtitle">{{ isLogin ? '请输入用户名和密码' : '请填写注册信息' }}</p>
 
-        <form @submit.prevent="handleSubmit">
+        <!-- 登录表单 -->
+        <form @submit.prevent="handleSubmit" v-if="isLogin">
           <div class="input-group">
-            <input type="text" v-model="form.workId" placeholder="工号" required>
+            <input type="text" v-model="form.username" placeholder="用户名" required>
           </div>
           <div class="input-group">
             <input type="password" v-model="form.password" placeholder="密码" required>
           </div>
-
-          <template v-if="!isLogin">
-            <div class="input-group">
-              <input type="password" v-model="form.confirmPassword" placeholder="确认密码" required>
-            </div>
-            <div class="input-group">
-              <input type="text" v-model="form.name" placeholder="姓名" required>
-            </div>
-            <div class="input-group">
-              <input type="email" v-model="form.email" placeholder="工作邮箱" required>
-            </div>
-          </template>
-
-          <button type="submit" class="submit-btn">
-            {{ isLogin ? '登 录' : '注 册' }}
-          </button>
+          <button type="submit" class="submit-btn">登 录</button>
         </form>
 
-        <p class="toggle-form" @click="isLogin = !isLogin">
-          {{ isLogin ? '新员工？点击注册' : '已有账号？点击登录' }}
-        </p>
+        <!-- 注册表单 -->
+        <form @submit.prevent="handleSubmit" v-else>
+          <div class="input-group">
+            <input type="text" v-model="form.username" placeholder="用户名" required>
+          </div>
+          <div class="input-group">
+            <input type="password" v-model="form.password" placeholder="密码" required>
+          </div>
+          <div class="input-group">
+            <input type="password" v-model="form.confirmPassword" placeholder="确认密码" required>
+          </div>
+          <div class="input-group">
+            <input type="text" v-model="form.name" placeholder="姓名" required>
+          </div>
+          <div class="input-group">
+            <input type="text" v-model="form.pharmacyDepartment" placeholder="药房部门" required>
+          </div>
+          <div class="input-group">
+            <input type="email" v-model="form.email" placeholder="电子邮箱" required>
+          </div>
+          <div class="input-group">
+            <input type="file" @change="handleFileChange" accept="image/*">
+          </div>
+          <button type="submit" class="submit-btn">注 册</button>
+        </form>
+
+        <!-- 切换登录/注册按钮 -->
+        <div class="toggle-form">
+          <span @click="toggleForm">
+            {{ isLogin ? '新员工？点击注册' : '已有账号？点击登录' }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+import {ElMessage} from "element-plus";
+
 export default {
-  name: 'WorkerLogin',
-  data() {
-    return {
-      isLogin: true,
-      form: {
-        workId: '',
-        password: '',
-        confirmPassword: '',
-        name: '',
-        email: ''
-      }
+name: 'WorkerLogin',
+data() {
+return {
+isLogin: true,
+form: {
+username: '',
+password: '',
+confirmPassword: '',
+name: '',
+pharmacyDepartment: '',  // 药房部门
+email: '',
+avatar: null
+}
+}
+},
+methods: {
+  toggleForm() {
+    this.isLogin = !this.isLogin;
+    this.resetForm();
+  },
+
+  handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      this.form.avatar = file;
     }
   },
-  methods: {
-    handleSubmit() {
-      console.log('Form submitted:', this.form)
-    }
-  }
+async handleSubmit() {
+try {
+if (this.isLogin) {
+// 登录逻辑
+const formData = new FormData();
+formData.append('username', this.form.username);
+formData.append('password', this.form.password);
+
+const response = await axios.post('http://localhost:8080/api/auth/login', formData);
+
+if (response.data.code === 200) {
+// 保存token和用户信息
+localStorage.setItem('token', response.data.data.token);
+localStorage.setItem('userInfo', JSON.stringify(response.data.data));
+
+ElMessage.success('登录成功');
+this.$router.push('/worker/dashboard'); // 导航到药房工作台
+} else {
+ElMessage.error(response.data.message || '登录失败');
+}
+} else {
+// 注册逻辑
+// 密码确认验证
+if (this.form.password !== this.form.confirmPassword) {
+ElMessage.error('两次输入的密码不一致');
+return;
+}
+
+const formData = new FormData();
+formData.append('username', this.form.username);
+formData.append('password', this.form.password);
+formData.append('email', this.form.email);
+formData.append('role', 'PHARMACIST');  // 使用枚举值
+formData.append('pharmacyDepartment', this.form.pharmacyDepartment);
+formData.append('name', this.form.name);
+
+// 如果没有上传头像，使用默认头像
+if (!this.form.avatar) {
+const defaultAvatar = await this.createDefaultAvatarFile();
+formData.append('avatar', defaultAvatar);
+} else {
+formData.append('avatar', this.form.avatar);
+}
+
+const response = await axios.post('http://localhost:8080/api/auth/register', formData);
+
+if (response.data.code === 200) {
+  localStorage.setItem('token', response.data.data.token);
+  localStorage.setItem('userInfo', JSON.stringify(response.data.data));
+  ElMessage.success('登录成功');
+  this.$router.push('/worker/dashboard');  // 使用新的路由路径
+} else {
+ElMessage.error(response.data.message || '注册失败');
+}
+}
+} catch (error) {
+console.error('Error:', error);
+ElMessage.error(error.response?.data?.message || '操作失败，请重试');
+}
+},
+
+resetForm() {
+this.form = {
+username: '',
+password: '',
+confirmPassword: '',
+name: '',
+pharmacyDepartment: '',
+email: '',
+avatar: null
+};
+},
+
+async createDefaultAvatarFile() {
+const canvas = document.createElement('canvas');
+canvas.width = 1;
+canvas.height = 1;
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = 'transparent';
+ctx.fillRect(0, 0, 1, 1);
+
+return new Promise((resolve) => {
+canvas.toBlob((blob) => {
+resolve(new File([blob], 'default-avatar.png', { type: 'image/png' }));
+}, 'image/png');
+});
+}
+}
 }
 </script>
 
@@ -272,5 +387,21 @@ input:focus {
   .form-container {
     padding: 20px;
   }
+}
+
+.toggle-form {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.toggle-form span {
+  color: #722ed1;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.toggle-form span:hover {
+  color: #531dab;
+  text-decoration: underline;
 }
 </style>

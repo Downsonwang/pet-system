@@ -17,4 +17,6 @@ public interface MedicalService {
 
     // 创建就诊记录和费用
     void createMedicalRecord(MedicalRecordDTO recordDTO);
+
+
 }

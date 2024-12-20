@@ -1,14 +1,13 @@
 package com.pet.project.entity;
 
-public enum PrescriptionStatus {
-    CREATED("已开具"),
-    DISPENSED("已发药"),
-    PAID("已付费"),
-    CANCELLED("已取消");
+public enum PaymentStatus {
+    PENDING("待支付"),
+    PAID("已支付"),
+    REFUNDED("已退款");
 
     private final String description;
 
-    PrescriptionStatus(String description) {
+    PaymentStatus(String description) {
         this.description = description;
     }
 

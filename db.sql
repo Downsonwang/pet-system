@@ -120,3 +120,18 @@ CREATE TABLE consultation_messages (
                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                        FOREIGN KEY (consultation_id) REFERENCES consultations(id)
 );
+
+create table medicines
+(
+    id             bigint auto_increment
+        primary key,
+    name           varchar(255)                         null,
+    specification  varchar(255)                         null,
+    manufacturer   varchar(255)                         null,
+    category       varchar(255)                         null,
+    unit_price     decimal(38, 2)                       null,
+    stock_quantity int                                  null,
+    min_stock      int                                  null,
+    status         tinyint(1) default 1                 null,
+    created_at     timestamp  default CURRENT_TIMESTAMP null
+);

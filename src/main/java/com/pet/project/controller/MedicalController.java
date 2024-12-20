@@ -8,6 +8,7 @@ import com.pet.project.exception.BusinessException;
 import com.pet.project.service.MedicalRecordService;
 import com.pet.project.service.MedicalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -61,4 +62,6 @@ public class MedicalController {
             return Result.error(e.getMessage());
         }
     }
+
+
 }

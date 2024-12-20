@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/doctors/**").permitAll()  // 临时开放 doctors 接口用于测试
                         .requestMatchers("/api/medical/**").permitAll()
                         .requestMatchers("/api/medical/record/**").permitAll()
+                        .requestMatchers("/api/medicines/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);  // 添加JWT过滤器
